@@ -1,6 +1,4 @@
-# Playbook 1
-
-In deze playbook gaan we kijken naar enkele eenvoudige en praktische toepassingen voor het beheren van een machine. Hierbij gaan we een aantal Docker containers gebruiken.
+# Eerste Playbook
 
 ### Voorbereiding
 
@@ -8,9 +6,7 @@ Instaleer Ansible op je eigen computer. Je kan controleren of Ansible geïnstale
 
 1. Gebruik `docker pull` om de volgende containers binnen te halen:
 
-- Centos
 - Ubuntu
-- Debian
 
 2. We draaien 2 ubuntu machines in de achtergrond met het commando:
 
@@ -67,5 +63,58 @@ Wed Apr 15 19:20:59 UTC 2020
 Wed Apr 15 19:20:59 UTC 2020
 ```
 
-### Schrijven van de eerste playbook
+#### De eerste playbook
 
+Een playbook is eigenlijk een 
+
+We maken een nieuw .yml bestand aan voor onze playbook (zie playbook.yml). In deze playbook gaan we gebruik maken van de shell module om een bestand weg te schrijven op onze beide hosts.
+
+```yml
+
+#Eerste playbook 
+#Wegschrijven van een bestand in /tmp/
+
+#We beschrijven wat de playbook doot met name
+- name: bestand wegschrijven in /tmp/ directory
+  hosts: "*"    #Alle hosts in de inventory moeten dit uitvoeren
+  tasks:        
+    - name: Commando met shell module
+      shell: echo "Onze eerste playbook werkt!" > /tmp/playbook1
+      #Shell module gaat de tekst in  het bestand wegschrijven.
+      #Dit is hetzelfde als je in bash of ander shells.
+```
+
+
+Nu kan je de playbook uitvoeren met het volgende commando:
+
+```bash
+ansible-playbook -i inventory playbook.yml
+```
+
+Dan krijg je de volgende output:
+
+```bash
+PLAY [bestand wegschrijven in /tmp/ directory] ********************************
+
+TASK [Gathering Facts] ********************************************************
+ok: [172.17.0.3]
+ok: [172.17.0.2]
+
+TASK [Commando met shell module] **********************************************
+changed: [172.17.0.3]
+changed: [172.17.0.2]
+
+PLAY RECAP ********************************************************************
+172.17.0.2                 : ok=2    changed=1    unreachable=0    failed=0
+172.17.0.3                 : ok=2    changed=1    unreachable=0    failed=0
+```
+
+Als we nu in onze containers kijken, zien we dat we er een nieuw bestand is aangemaakt met de tekst "Onze eerste playbook werkt!".
+
+```bash
+ubuntu# cat /tmp/playbook1
+Onze eerste playbook werkt!
+ubuntu#
+```
+
+In de volgende playbook gaan verder in op het schrijven van een playbook en gebruiken meerder praktische modules.

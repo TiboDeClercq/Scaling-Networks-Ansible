@@ -1,0 +1,8 @@
+#Eerste playbook 
+#Wegschrijven van een bestand in /tmp/
+
+- name: bestand wegschrijven in /tmp/ directory
+  hosts: "*"
+  tasks:
+    - name: Commando met shell module
+      shell: echo "Onze eerste playbook werkt!" > /tmp/playbook1
