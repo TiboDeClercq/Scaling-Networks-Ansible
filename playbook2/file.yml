@@ -1,0 +1,20 @@
+
+- name: bestanden voor user1 
+  hosts: "*"
+  tasks:
+    - name: nieuwe directory maken
+      file:
+        path: $HOME/home/user1
+        state: directory
+    
+    - name: meerder folders voor user1
+      file:
+        path: $HOME/home/user1/{{item}}
+        state: directory
+      loop:
+        - Downloads
+        - Documenten
+        - Muziek
+        - Afbeelding
+        - scripts
+        
