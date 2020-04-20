@@ -3,9 +3,9 @@
 In deze playbook gaan we gebruiken maken van een aantal praktische modules bij het beheren van verschillende soorten servers. We maken gebruiken van de volgende modules:
 
 * File module
+* Copy module
 * Command module
 * Shell module
-* Copy module
 * Fetch module
 * apt module (voor debian, ubuntu, ...)
 * yum module (voor centos, ...)
@@ -71,7 +71,7 @@ Inventory:
 
 #### File module
 
-###### Directory maken
+###### Folders beheren
 
 We gaan voor alle hosts van de inventory een nieuwe folder aanmaken: *user1* 
 
@@ -123,6 +123,7 @@ drwxr-xr-x  2 root root 4.0K Apr 19 20:27 test123
 drwxr-xr-x  2 root root 4.0K Apr 19 20:27 test456
 drwxr-xr-x  2 root root 4.0K Apr 19 20:27 test789
 ```
+
 In de vorige stap hebben we de testfolders aangemaakt. We willen deze folders verwijderen.
 
 ```yml
@@ -148,6 +149,8 @@ drwxr-xr-x 2 root root 4.0K Apr 19 20:18 Muziek
 drwxr-xr-x 2 root root 4.0K Apr 19 20:18 scripts
 ```
 
+###### Permissions owners 
+
 We willen de folders op de folders permissions zetten. Zo willen we op de script folder chmod 0744 (User kan alles, andere enkel lezen) geven en de andere folders 0666 (Iedereen kan lezen en schrijven).
 We voegen iets klein aan bij de task "meerder folders voor user1":
 
@@ -170,6 +173,8 @@ We kunnen de eigenaar van de script specifiëren. Dit is in dit scenario niet ec
         mode: 0744
       become: true
 ```
+
+###### Bestanden beheren
 
 Natuurlijk hebben we niks aan folders die leeg zijn. Met de file modules kan je ook bestanden beheren. Dus maken we een aantel bestanden aan.
 
@@ -201,10 +206,196 @@ Het verwijderen van bestanden is dus hetzelfde als het verwijderen van folders:
         - test456.py
         - test789.py
 ```
+Documentatie: https://docs.ansible.com/ansible/latest/modules/file_module.html
+
+#### Copy module
+
+###### Bestanden kopiëren
+
+In dit deel gaan we verder op de folderstructuur vanuit de File module. We gaan bestanden kopieren van de lokale host naar al onze hosts met de copy module.
+
+Maak de folder "files" & playbook "copy.yml" aan. De files folder is de standaard folder waar ansible gaat kijken. 
+
+copy.yml:
+```yml
+- name: bestanden kopiëren.
+  hosts: "*"
+  tasks:
+      - name: Kopieren van 1 simpel bestand
+        copy: 
+          src: Bestand1.txt
+          dest: /root/home/user1/Documenten/
+```
+
+```bash
+debian# cat Bestand1.txt
+Dit is een simpel bestand
+```
+
+```yml
+- name: bestanden kopiëren.
+  hosts: "*"
+  tasks:
+      - name: Kopieren van meerder bestanden
+        copy: 
+          src: "{{ item }}"
+          dest: "/root/home/user1/Documenten/{{ item }}"
+        loop:
+          - Bestand1.txt
+          - Bestand2.js
+          - Bestand3.html
+```
+
+1 bestand kopiëren is te specfiek. Vaak wil je meerder bestanden of volledige folders kopiëren naar de andere hosts. Als je meerder bestanden wilt kopiëren moet je gebruik maken van een loop, dit is gelijkaardig aan meerde folders aanmaken.
+
+###### Bestand wijzigen
+
+De inhoud van Bestand1.txt moet verandert worden naar `Ik heb de inhoud veranderd`. Dit kunnen we met de copy module:
+
+```yml
+  - name: Verander inhoud Bestand1.txt
+        copy:
+          dest: /root/home/user1/Documenten/Bestand1.txt
+          content: "Ik heb de inhoud veranderd \n"
+      
+```
+
+###### Folders kopiëren
+
+In de folder **bongo-cat-codes-2jamming** zit een website die ik in de documenten van elke host wil steken.
+
+*Pas om met de / dit kopieert oftewel de inhoud van de map of de volledige map*
+
+```yml
+- name: Kopieer website naar machine
+        copy:
+        # bongo-cat-codes-2jamming/ != bongo-cat-codes-2jamming
+          src: bongo-cat-codes-2jamming 
+          dest: "/root/home/user1/Documenten"
+```
+
+```bash
+debian# tree
+.
+|-- Bestand1.txt
+|-- Bestand2.js
+|-- Bestand3.html
+`-- bongo-cat-codes-2jamming
+    |-- README.markdown
+    |-- dist
+    |   |-- index.html
+    |   |-- script.js
+    |   `-- style.css
+    |-- license.txt
+    `-- src
+        |-- index.pug
+        |-- script.babel
+        `-- style.scss
+
+3 directories, 11 files
+```
+
+Ik zou graag een backup willen maken van mijn vim config bestanden op de host zelf. Dus alle bestanden van **/etc/vim/** moeten gekopieerd worden naar **/root/home/user1/Documenten/VimCopy/**
+
+Het is belangrijk dat je `remote_src: true` aanzet, anders worden jouw lokale configs gekopieerd naar de machines.
+
+```yml
+- name: maak Vim backup
+        copy:
+          src: /etc/vim
+          dest: "/root/home/user1/Documenten/vimCopy"
+          remote_src: true 
+```
+
+#### Fetch module
+
+Als we bestanden en folders van de machines willen kopiëren, moeten we gebruik maken van de FETCH module.
+
+In de playbook fetch.yml, maken we een bestand aan dat we daarna gaan binnen halen.
+
+```yml
+
+- name: Bestanden van de machines binnehalen
+  hosts: "*"
+  tasks:
+      - name: Maak nieuw bestand aan
+        file:
+          path: /root/home/user1/Documenten/HaalMeBinnen.txt
+          state: touch
+
+      - name: Inhoud bestand
+        copy: 
+          dest: /root/home/user1/Documenten/HaalMeBinnen.txt
+          content: "Haal dit bestand binnen met de FETCH module."
+
+      - name: Binnenhalen
+        fetch:
+          src: /root/home/user1/Documenten/HaalMeBinnen.txt
+          dest: binnen
+```
+
+Als je deze playbook draait, krijg je het volgende resultaat:
+
+```bash
+tibuaksi@tibauski ~/D/s/S/playbook2 (master)> tree binnen/
+binnen/
+├── 172.17.0.2
+│   └── root
+│       └── home
+│           └── user1
+│               └── Documenten
+│                   └── HaalMeBinnen.txt
+└── 172.17.0.3
+    └── root
+        └── home
+            └── user1
+                └── Documenten
+                    └── HaalMeBinnen.txt
+```
+
+Zoals je kan zijn de bestanden binnengehaald. Dit kan redelijk onoverzichtelijk worden als je meerder bestanden van meerdere hosts wilt gaan kopiëren. Je kan het volgende veranderen:
+
+Verwijder eerst de folder "binnen"
+
+```yml
+- name: Binnenhalen
+        fetch:
+          src: /root/home/user1/Documenten/HaalMeBinnen.txt
+          dest: "binnen/{{ inventory_hostname }}/"
+          flat: true
+```
+
+```bash
+tibuaksi@tibauski ~/D/s/S/playbook2 (master)> tree binnen/
+binnen/
+├── 172.17.0.2
+│   └── HaalMeBinnen.txt
+└── 172.17.0.3
+    └── HaalMeBinnen.txt
+```
+Dit is een stuk overzichtelijker dan het vorige. Het is dus belangrijk dat je de hosts op een manier kunt identificiëren (bv. met inventory_hostname).
+
+Je kan ook met loop werken om meerdere bestanden binnen te halen.
+Bij folders met je dan de / achter je pad zetten
+
+```yml
+- name: Binnenhalen
+  fetch:
+    src: /root/home/user1/Documenten/{{ item }}
+    dest: "binnen/{{ inventory_hostname }}/"
+    flat: true
+  loop:
+    - HaalMeBinnen.txt
+    - HaalMeBinnen2.txt
+        
+```
+
+
+
+
+#### apt module 
 
 #### Command module
 #### Shell module
-#### Copy module
-#### Fetch module
-#### apt module 
+
 <!-- #### yum module -->

@@ -1,0 +1,35 @@
+#Playbook voor COPY module
+
+- name: Bestanden kopieren
+  hosts: "*"
+  tasks:
+      - name: Kopieren van 1 simpel bestand
+        copy: 
+          src: Bestand1.txt
+          dest: /root/home/user1/Documenten/
+
+      - name: Kopieren van meerder bestanden
+        copy: 
+          src: "{{ item }}"
+          dest: "/root/home/user1/Documenten/{{ item }}"
+        loop:
+          - Bestand1.txt
+          - Bestand2.js
+          - Bestand3.html
+
+      - name: Verander inhoud Bestand1.txt
+        copy:
+          dest: /root/home/user1/Documenten/Bestand1.txt
+          content: "Ik heb de inhoud veranderd \n"
+      
+      - name: Kopieer website naar machine
+        copy:
+          src: bongo-cat-codes-2jamming
+          dest: "/root/home/user1/Documenten"
+      
+      - name: maak Vim backup
+        copy:
+          src: /etc/vim
+          dest: "/root/home/user1/Documenten/vimCopy"
+          remote_src: true 
+        
