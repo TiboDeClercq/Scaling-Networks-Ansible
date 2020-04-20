@@ -1,0 +1,1 @@
+//Dit is bestand2.js
