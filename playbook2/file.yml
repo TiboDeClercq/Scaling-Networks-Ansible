@@ -1,3 +1,4 @@
+#Enkel file module wordt hier gebruikt.
 
 - name: bestanden voor user1 
   hosts: "*"
@@ -11,10 +12,53 @@
       file:
         path: $HOME/home/user1/{{item}}
         state: directory
+        mode: 0666
       loop:
         - Downloads
         - Documenten
         - Muziek
         - Afbeelding
+        - test123
+        - test456
+        - test789
         - scripts
-        
+
+    - name: verwijder de test folders
+      file:
+        path: $HOME/home/user1/{{item}}
+        state: absent
+      loop:
+       - test123
+       - test456
+       - test789
+
+    - name: chmod scripts
+      file:
+        path: $HOME/home/user1/scripts
+        state: directory
+        owner: root
+        group: root
+        mode: 0744
+      become: true
+
+    - name: bestanden klaarzetten in scriptfolder
+      file:
+        path: $HOME/home/user1/scripts/{{item}}
+        state: touch # Dit is hetzelfde als touch in terminal
+        mode: 0755
+      loop:
+        - test123.py
+        - test456.py
+        - test789.py
+        - backup.py
+        - ftp.py
+        - hello.py
+    
+    - name: test bestanden verwijderen
+      file:
+        path: $HOME/home/user1/scripts/{{item}}
+        state: absent
+      loop:
+        - test123.py
+        - test456.py
+        - test789.py

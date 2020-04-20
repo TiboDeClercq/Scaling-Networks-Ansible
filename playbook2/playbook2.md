@@ -91,7 +91,7 @@ Het uitvoeren van de playbook doe je met:
 ansible-playbook file.yml -i inventory
 ```
 
-We willen nu voor user1 een een aantal folders verschillende folders aanmaken. Dit doen we door gebruik te maken van een lus.
+We willen nu voor user1 een een aantal verschillende folders aanmaken. Dit doen we door gebruik te maken van een lus.
 
 ```yml
    - name: meerder folders voor user1
@@ -102,26 +102,105 @@ We willen nu voor user1 een een aantal folders verschillende folders aanmaken. D
         - Downloads
         - Documenten
         - Muziek
-        - Afbeeldingen
+        - Afbeelding
         - test123
         - test456
+        - test789
         - scripts
 ```
 
 ```bash
-debian# ls -alh
-total 28K
-drwxr-xr-x 7 root root 4.0K Apr 19 11:37 .
-drwxr-xr-x 3 root root 4.0K Apr 19 11:26 ..
-drwxr-xr-x 2 root root 4.0K Apr 19 11:37 Afbeeldingen
-drwxr-xr-x 2 root root 4.0K Apr 19 11:37 Documenten
-drwxr-xr-x 2 root root 4.0K Apr 19 11:37 Downloads
-drwxr-xr-x 2 root root 4.0K Apr 19 11:37 Muziek
-drwxr-xr-x 2 root root 4.0K Apr 19 11:37 scripts
+debian# ls -alh /root/home/user1/
+total 40K
+drwxr-xr-x 10 root root 4.0K Apr 19 20:27 .
+drwxr-xr-x  3 root root 4.0K Apr 19 20:18 ..
+drwxr-xr-x  2 root root 4.0K Apr 19 20:18 Afbeelding
+drwxr-xr-x  2 root root 4.0K Apr 19 20:18 Documenten
+drwxr-xr-x  2 root root 4.0K Apr 19 20:18 Downloads
+drwxr-xr-x  2 root root 4.0K Apr 19 20:18 Muziek
+drwxr-xr-x  2 root root 4.0K Apr 19 20:18 scripts
+drwxr-xr-x  2 root root 4.0K Apr 19 20:27 test123
+drwxr-xr-x  2 root root 4.0K Apr 19 20:27 test456
+drwxr-xr-x  2 root root 4.0K Apr 19 20:27 test789
+```
+In de vorige stap hebben we de testfolders aangemaakt. We willen deze folders verwijderen.
 
+```yml
+    - name: verwijder de test folders
+      file:
+        path: $HOME/home/user1/{{item}}
+        state: absent
+      loop:
+       - test123
+       - test456
+       - test789
 ```
 
+```bash
+debian# ls -alh /root/home/user1/
+total 28K
+drwxr-xr-x 7 root root 4.0K Apr 19 20:24 .
+drwxr-xr-x 3 root root 4.0K Apr 19 20:18 ..
+drwxr-xr-x 2 root root 4.0K Apr 19 20:18 Afbeelding
+drwxr-xr-x 2 root root 4.0K Apr 19 20:18 Documenten
+drwxr-xr-x 2 root root 4.0K Apr 19 20:18 Downloads
+drwxr-xr-x 2 root root 4.0K Apr 19 20:18 Muziek
+drwxr-xr-x 2 root root 4.0K Apr 19 20:18 scripts
+```
 
+We willen de folders op de folders permissions zetten. Zo willen we op de script folder chmod 0744 (User kan alles, andere enkel lezen) geven en de andere folders 0666 (Iedereen kan lezen en schrijven).
+We voegen iets klein aan bij de task "meerder folders voor user1":
+
+```yml 
+   - name: meerder folders voor user1
+      file:
+        path: $HOME/home/user1/{{item}}
+        state: directory
+        mode: 0666
+```
+We kunnen de eigenaar van de script specifiëren. Dit is in dit scenario niet echt zinvol aangezien er maar 1 persoon de machine gebruikt (root).
+
+```yml
+  - name: chmod scripts
+      file:
+        path: $HOME/home/user1/scripts
+        state: directory
+        owner: root
+        group: root
+        mode: 0744
+      become: true
+```
+
+Natuurlijk hebben we niks aan folders die leeg zijn. Met de file modules kan je ook bestanden beheren. Dus maken we een aantel bestanden aan.
+
+```yml
+    - name: bestanden klaarzetten in scriptfolder
+      file:
+        path: $HOME/home/user1/scripts/{{item}}
+        state: touch # Dit is hetzelfde als touch in terminal
+        mode: 0755
+      loop:
+        - test123.py
+        - test456.py
+        - test789.py
+        - backup.py
+        - ftp.py
+        - hello.py
+```
+Zoals je ziet is dit hetzelfde als het aanmaken van folders (chmod, loop, etc). Alleen de state is verandert. Als je de inhoud van de bestanden gaat bekijken, zie je dat deze leeg zijn.
+
+Het verwijderen van bestanden is dus hetzelfde als het verwijderen van folders:
+
+```yml
+- name: test bestanden verwijderen
+      file:
+        path: $HOME/home/user1/scripts/{{item}}
+        state: absent
+      loop:
+        - test123.py
+        - test456.py
+        - test789.py
+```
 
 #### Command module
 #### Shell module
