@@ -390,12 +390,95 @@ Bij folders met je dan de / achter je pad zetten
         
 ```
 
-
-
-
 #### apt module 
+
+Met de apt module kunnen we de packages beheren van al onze debian-based machines.
+
+###### Packages installeren
+
+We maken gebruik van de apt module voor debian-based distro's. Er zijn verschillende Ansible modules voor het beheren van packages zoals de yum, pacman, ...
+
+We beginnen met het installeren van de packages **net-tools**. In de playbook apt.yml zie je dat we de playbook niet tegen alle hosts gaan uitvoeren. In de inventory hebben we alle debian-based machines in dezelfde groep gestoken. 
+
+Als je een inventory hebt met hosts die niet debian-based zijn (redhat, arch, gentoo, ...) gaat deze playbook niet kunnen worden uitgevoerd. Je kan dat oplossen door gebruik te maken van "ansible_os_family".
+
+*Inventory heeft enkel debian-based machines*
+
+```yml
+- name: Packages beheren op alle machines
+  hosts: "debian-based" #inventory group
+  tasks:
+    - name: Instaleren van net-tools
+      apt: 
+        name: net-tools
+        state: present #installeren
+        update_cache: true #gaat apt cache updaten
+      become: true #root permissions nodig
+```
+
+*Inventory bestaat uit verschillende soorten machines*
+
+```yml
+- name: Packages beheren op alle machines
+  hosts: "*" #alle hosts
+  tasks:
+    - name: Instaleren van net-tools
+      apt: 
+        name: net-tools
+        state: present #installeren
+        update_cache: true #gaat apt cache updaten
+      become: true #root permissions nodig 
+      #wordt enkel uitgevoord voor debian machines
+      when: ansible_os_family == 'Debian'
+```
+Resultaat:
+
+```bash
+debian# ifconfig --version
+net-tools 2.10-alpha
+```
+###### Packages verwijderen
+
+We kunnen makkelijk meerder packages in één keer installeren door:
+
+```yml
+- name: Meerder packages installeren
+      apt:
+        name: 
+          - cowsay
+          - mariadb-server
+        state: present #installeren
+        update_cache: true #gaat apt cache updaten
+      become: true #root permissions nodig
+```
+
+Sommige packages zijn zinvoller dan andere. We kunnen makkelijk packages verwijderen door:
+
+```yml
+    - name: Cowsay verwijderen
+      apt:
+          name: cowsay
+          state: absent #verwijderen
+          #verwijdert alle redudante dependencies van de packages apt-get autoremove
+          autoremove: true 
+        become: true 
+```
+
+###### Packages updaten en upgraden
+
+Na een tijd moeten onze packages worden geupdate. Het is belangrijk dat je eerst de lijst van beschikbare packages update met apt-get update. apt-get update instaleert niet de packages. Na het updaten van de lijst met packages wil je deze installeren met apt-get upgrade. Je wilt de laatste packages hebben, daar doe je eerst een update voordat je upgrade.
+
+```yml
+    #apt-get update
+    - name: Update apt repo en cache 
+      apt: update_cache=yes force_apt_get=yes 
+
+    #apt-get upgrade
+    - name: Upgrade alle packages
+      apt: upgrade=dist force_apt_get=yes
+```
+force_apt_get forceert de update\upgrade van de packages (hetzelfde als -f optie).
+
 
 #### Command module
 #### Shell module
-
-<!-- #### yum module -->
