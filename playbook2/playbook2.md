@@ -2,13 +2,13 @@
 
 In deze playbook gaan we gebruiken maken van een aantal praktische modules bij het beheren van verschillende soorten servers. We maken gebruiken van de volgende modules:
 
-* File module
-* Copy module
-* Command module
-* Shell module
-* Fetch module
-* apt module (voor debian, ubuntu, ...)
-* yum module (voor centos, ...)
+* [File module](#file-module)
+* [Copy module](#copy-module)
+* [Fetch module](#fetch-module)
+* [apt module](#apt-module)
+* [Command module](#command-module)
+* [Shell module](#shell-module)
+
 
 #### Voorbereiding
 
@@ -479,6 +479,66 @@ Na een tijd moeten onze packages worden geupdate. Het is belangrijk dat je eerst
 ```
 force_apt_get forceert de update\upgrade van de packages (hetzelfde als -f optie).
 
+#### Shell module
+
+We hebben in playbook 1 al gebruik gemaakt van de shell module om een simpel bestand met tekst weg te schrijven. De shell module is gelijkaardig aan het uitvoeren van commando's in bash. 
+
+
+
 
 #### Command module
-#### Shell module
+
+De command module en de shell module lijken op elkaar. Toch is er verschil tussen de beiden. Het verschil wordt duidelijk als we naar een simpel voorbeeld kijken. Namelijk het aanmaken van een bestand.
+
+**Shell module**
+```yml
+    - name: Commando met shell module
+      shell: echo "Dit bestand is gemaakt met de shell module" > /root/home/user1/Documenten/shell.txt
+```
+**Command module**
+
+```yml
+    - name: Commando met command module
+      command: echo "Dit bestand is gemaakt met de command module" > /root/home/user1/Documenten/command.txt
+```
+
+We voeren de command.yml playbook uit en zien het volgende in onze containers:
+
+```bash
+ubuntu# cat root/home/user1/Documenten/*
+Dit bestand is gemaakt met de shell module
+```
+
+We zien dat enkel de shell module een bestand met tekst heeft aangemaakt. Dit is omdat de command module de karakters 'escaped'. Het grote verschil tussen de shell en de command module is dat de command module geen gebruik maakt van speciale karaters ( ! | && // ) en deze behandelt als een string. Dit maakt de command module een stuk veiliger.
+
+We kunnen met de command module gebruik maken van argumenten en variabelen.
+
+```yml
+    - name: Gebruiken van argumeten en variabelen.
+      command: touch $BESTAND
+      args:
+        chdir: $FOLDER
+      environment:
+        FOLDER: /tmp/
+        BESTAND: CommandVariabele
+```
+
+```bash
+ubuntu# ls
+CommandVariabele  shell.txt
+```
+
+In envirmonment initialiseren we onze variabelen. FOLDER = het pad van het bestand & BESTAND = het de naam van het bestand. De variabele FOLDER wordt meegegeven aan het changedirectory argumetent (chdir). De command module heeft [verschillende argumenten](https://docs.ansible.com/ansible/latest/modules/command_module.html) (cmd,stdin, war,..).
+
+In vorige modules hebben we gezien hoe we dezelfde taak meerder keren kunnen uitvoeren. Ook bij de command module kan je meerder commando's uitvoeren door gebruik te maken van loop.
+
+Een klein voorbeeld:
+```yml
+ - name: Meerder commando's in 1 task
+      command: "{{ item }}"
+      loop: 
+        - touch /root/home/user1/Documenten/geheimBestand
+        - mkdir /root/home/user1/Documenten/geheimeFolder
+        - mv /root/home/user1/Documenten/geheimBestand /root/home/user1/Documenten/geheimeFolder
+        - chmod +x /root/home/user1/Documenten/geheimBestand
+```
