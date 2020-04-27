@@ -11,3 +11,9 @@
       service:
               name: nginx
               state: started
+    - name: write the webpages
+      copy:
+              src: ../webpages/
+              dest: /var/www/html/      
+    - name: restart nginx
+      service: name=nginx state=restarted
