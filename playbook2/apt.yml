@@ -1,0 +1,39 @@
+#Deze playbook maakt gebruik van de apt module om packages te instaleren en beheren
+
+- name: Packages beheren op alle machines
+  hosts: "debian-based"
+  tasks:
+    - name: Instaleren van net-tools
+      apt: 
+        name: net-tools
+        state: present #installeren
+        update_cache: true #gaat apt cache updaten
+      become: true #root permissions nodig
+    
+    - name: Meerder packages installeren
+      apt:
+        name: 
+          - cowsay
+          - mariadb-server
+        state: present 
+        update_cache: true
+      become: true 
+
+    - name: Cowsay verwijderen
+      apt:
+          name: cowsay
+          state: absent #verwijderen
+          #verwijdert alle redudante dependencies van de packages apt-get autoremove
+          autoremove: true 
+      become: true 
+
+    #apt-get update
+    - name: Update apt repo en cache 
+      apt: update_cache=yes force_apt_get=yes 
+
+    #apt-get upgrade
+    - name: Upgrade alle packages
+      apt: upgrade=dist force_apt_get=yes
+    
+
+    

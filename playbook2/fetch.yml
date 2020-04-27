@@ -1,0 +1,30 @@
+# Dit is de fecth playbook
+
+- name: Bestanden van de machines binnehalen
+  hosts: "*"
+  tasks:
+      - name: Maak nieuw bestand aan
+        file:
+          path: /root/home/user1/Documenten/{{ item }}
+          state: touch
+        loop:
+          - HaalMeBinnen.txt
+          - HaalMeBinnen2.txt
+
+      - name: Inhoud bestand
+        copy: 
+          dest: /root/home/user1/Documenten/{{ item }}
+          content: "Haal deze bestanden binnen met de FETCH module."
+        loop:
+          - HaalMeBinnen.txt
+          - HaalMeBinnen2.txt
+
+      - name: Binnenhalen
+        fetch:
+          src: /root/home/user1/Documenten/{{ item }}
+          dest: "binnen/{{ inventory_hostname }}/"
+          flat: true
+        loop:
+          - HaalMeBinnen.txt
+          - HaalMeBinnen2.txt
+        

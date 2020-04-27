@@ -1,0 +1,25 @@
+- name: Command module
+  hosts: "*"    
+  tasks:        
+    - name: Commando met command module
+      command: echo "Dit bestand is gemaakt met de command module" > /root/home/user1/Documenten/command.txt
+
+    - name: Commando met shell module
+      shell: echo "Dit bestand is gemaakt met de shell module" > /root/home/user1/Documenten/shell.txt
+    
+    - name: Gebruiken van argumeten en variabelen.
+      command: touch $BESTAND
+      args:
+        chdir: $FOLDER
+      environment:
+        FOLDER: /tmp/
+        BESTAND: CommandVariabele
+
+    - name: Meerder commando's in 1 task
+      command: "{{ item }}"
+      loop: 
+        - touch /root/home/user1/Documenten/geheimBestand
+        - mkdir /root/home/user1/Documenten/geheimeFolder
+        - mv /root/home/user1/Documenten/geheimBestand /root/home/user1/Documenten/geheimeFolder
+        - chmod +x /root/home/user1/Documenten/geheimBestand
+  
