@@ -6,8 +6,7 @@ In deze playbook gaan we gebruiken maken van een aantal praktische modules bij h
 * [Copy module](#copy-module)
 * [Fetch module](#fetch-module)
 * [apt module](#apt-module)
-* [Command module](#command-module)
-* [Shell module](#shell-module)
+* [Shell & Command module](#Shell-&-Command-module)
 
 
 #### Voorbereiding
@@ -479,14 +478,9 @@ Na een tijd moeten onze packages worden geupdate. Het is belangrijk dat je eerst
 ```
 force_apt_get forceert de update\upgrade van de packages (hetzelfde als -f optie).
 
-#### Shell module
+#### Shell & Command module
 
 We hebben in playbook 1 al gebruik gemaakt van de shell module om een simpel bestand met tekst weg te schrijven. De shell module is gelijkaardig aan het uitvoeren van commando's in bash. 
-
-
-
-
-#### Command module
 
 De command module en de shell module lijken op elkaar. Toch is er verschil tussen de beiden. Het verschil wordt duidelijk als we naar een simpel voorbeeld kijken. Namelijk het aanmaken van een bestand.
 
