@@ -1,0 +1,15 @@
+# instaleren van mysql
+mysql_root_password: "kroepoek"
+
+# aanmaken databank
+mysql_databases:
+   - name: VoorbeeldDB
+    
+mysql_users:
+  - name: student
+    password: t
+    priv: "VoorbeeldDB.*:ALL"
+
+#mysql_config_include_files: [
+#  src: 'mysql.cnf'
+#]

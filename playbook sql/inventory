@@ -1,2 +1,2 @@
-[ubuntu]
+[databank]
 172.17.0.2 ansible_ssh_user=root
