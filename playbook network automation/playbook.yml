@@ -1,0 +1,13 @@
+- name: Configureren van Router
+  hosts: routers
+  tasks:
+  - name: Banner toevoegen
+    ios_banner:
+      banner: login
+      text: Wat zijn 8 hobbits?
+      state: present
+
+  - name: loopback
+    ios_interface:
+      name: Loopback21
+      state: present 
