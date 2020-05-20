@@ -11,3 +11,8 @@
     ios_interface:
       name: Loopback21
       state: present 
+  
+  - name: Verander hostname
+    ios_config: 
+      lines:
+        - hostname Hobbit

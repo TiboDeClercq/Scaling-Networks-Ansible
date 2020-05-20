@@ -1,0 +1,8 @@
+username hobbit1 password 0 kroepoek 
+username hobbit2 password 0 kroepoek 
+username hobbit3 password 0 kroepoek 
+username hobbit4 password 0 kroepoek 
+username hobbit5 password 0 kroepoek 
+username hobbit6 password 0 kroepoek 
+username hobbit7 password 0 kroepoek 
+username hobbit8 password 0 kroepoek 
