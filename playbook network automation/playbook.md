@@ -97,7 +97,7 @@ Loopback21             unassigned      YES unset  up                    up
 
 We zien de nieuwe banner "Wat zijn 8 hobbits?" bij het aanmelden en de nieuwe interface.
 
-#### Veranderen van de host name
+#### Basis configuraties
 
 We willen graag de hostname van de routers veranderen. Dit is zeer gemakkelijk, we doen dit met de volgende task.
 
@@ -109,7 +109,34 @@ We willen graag de hostname van de routers veranderen. Dit is zeer gemakkelijk, 
 
 ```
 
-resultaat:
+OK, we willen natuurlijk veel intressantere dingen doen dan enkel de hostname veranderen. We stellen het ip addres van GigabitEthernet 2 in en zetten GigabitEthernet 3 af.
+
+```yml
+- name: Configureren van interfaces
+    ios_config:
+      lines:
+        - description Gemaakt met Ansible
+        - ip address 192.168.1.10 255.255.255.0
+        - no shutdown
+      parents: interface GigabitEthernet2
+  
+  - name: shutdown interface GigabitEthernet3
+    ios_config:
+        - shutdown 
+    parents: interface GigabitEthernet3
+```
+
+Resultaat:
+
+```shell
+Hobbit#show ip interface brief
+Interface              IP-Address      OK? Method Status                Protocol
+GigabitEthernet1       10.10.20.48     YES NVRAM  up                    up
+GigabitEthernet2       192.168.1.10    YES manual up                    up
+GigabitEthernet3       unassigned      YES NVRAM  administratively down down
+Loopback21             unassigned      YES unset  up                    up
+
+```
 
 #### Pushen van config.txt naar routers
 

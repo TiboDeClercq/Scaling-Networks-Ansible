@@ -16,3 +16,18 @@
     ios_config: 
       lines:
         - hostname Hobbit
+
+  - name: Configureren van interfaces
+    ios_config:
+      lines:
+        - description Gemaakt met Ansible
+        - ip address 192.168.1.10 255.255.255.0
+        - ipv6 address 2001:db8:acad:5::1/64
+        - no shutdown
+      parents: interface GigabitEthernet2
+  
+  - name: shutdown interface GigabitEthernet3
+    ios_config:
+      lines:
+        - shutdown 
+      parents: interface GigabitEthernet3
