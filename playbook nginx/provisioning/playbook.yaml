@@ -1,0 +1,36 @@
+---
+- hosts: raspi
+  become: true
+  tasks:
+          - name: Connect
+            ping:
+
+          - name: Update cache
+            apt:
+                    update_cache: yes
+                    cache_valid_time: 3600
+
+          - name: Remove apache
+            apt:
+                    name: apache2
+                    state: absent
+
+          - name: Install Nginx
+            apt:
+                    name: nginx
+                    state: present
+
+          - name: Ensure latest Nginx version
+            apt:
+                    name: nginx
+                    state: latest
+
+          - name: Write the webpages
+            copy:
+                    src: ../webpages/
+                    dest: /var/www/html/
+
+          - name: restart Nginx
+            service:
+                    name: nginx
+                    state: restarted
