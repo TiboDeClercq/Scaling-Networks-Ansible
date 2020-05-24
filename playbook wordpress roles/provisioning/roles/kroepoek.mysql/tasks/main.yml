@@ -1,0 +1,33 @@
+---
+- name: Install MySQL
+  apt: 
+        name: ['mysql-server', 'python3-mysqldb']
+        state: present
+
+- name: Generate new root password
+  command: openssl rand -hex 7 creates=/root/.my.cnf
+  #creates: checkt of er een /root/.my.cnf is; indien niet aanmaken en command uitvoeren; indien wel command overslaan
+  register: mysql_new_root_pass
+  #sla output op als my_sql_root_pass
+
+- name: Remove anonymous users
+  mysql_user: name="" state=absent
+  when: mysql_new_root_pass.changed
+  #changed is gelinkt aan created (boolean)
+
+- name: Remove test database
+  mysql_db: name=test state=absent
+  when: mysql_new_root_pass.changed
+
+- name: Update root password
+  mysql_user: name=root host=localhost password={{mysql_new_root_pass.stdout}}
+  when: mysql_new_root_pass.changed
+
+- name: Output new root password
+  debug: msg="Root password is {{mysql_new_root_pass.stdout}}"
+  when: mysql_new_root_pass.changed
+
+- name: Copy config file
+  template: src=my.cnf dest=/root/.my.cnf
+  #Ansible weet waar deze de my.cnf moet gaan zoeken
+  when: mysql_new_root_pass.changed

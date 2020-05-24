@@ -1,0 +1,8 @@
+---
+- name: Install nginx
+  apt: name=nginx state=present
+- name: Start nginx
+  service: name=nginx state=started
+- name: Create config file
+  template: src=default dest=/etc/nginx/sites-available/default
+  notify: Restarting Nginx

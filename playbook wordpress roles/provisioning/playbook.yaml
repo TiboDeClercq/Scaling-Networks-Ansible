@@ -1,0 +1,11 @@
+---
+- hosts: VMs
+  become: true
+  roles:
+          - role: kroepoek.php
+          - role: kroepoek.mysql
+          - role: kroepoek.nginx
+          - role: kroepoek.wordpress
+            database_name: wordpress
+            database_user: wordpress
+            database_password: t
