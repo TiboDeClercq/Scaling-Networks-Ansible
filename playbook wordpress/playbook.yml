@@ -1,0 +1,125 @@
+---
+- hosts: VMs
+  #enkel de VMs
+  become: true
+  #sudo
+  tasks:
+          - name: Check connection
+            #geef een naam
+            ping:
+            #gebruik de 'ping' module
+
+            #Install unzip
+          - name: Install Unzip
+            apt: name=unzip state=present
+
+            #PHP
+          - name: Add the ondrej PHP PPA
+            apt_repository: repo='ppa:ondrej/php'
+          - name: Update cache
+            apt:
+                    update_cache: yes 
+                    cache_valid_time: 3600
+          - name: Install PHP
+            apt: name={{item}} state=present
+            with_items:
+                    - php
+                    - php-fpm
+                    - php-mysql
+                    - php-xml
+
+          - name: Remove apache
+            apt: name=apache2 state=absent
+
+
+            #MySQL
+          - name: Install MySQL
+            apt: 
+                    name: ['mysql-server', 'python3-mysqldb']
+                    state: present
+
+          - name: Generate new root password
+            command: openssl rand -hex 7 creates=/root/.my.cnf
+            #creates: checkt of er een /root/.my.cnf is; indien niet aanmaken en command uitvoeren; indien wel command overslaan
+            register: mysql_new_root_pass
+            #sla output op als my_sql_root_pass
+
+          - name: Remove anonymous users
+            mysql_user: name="" state=absent
+            when: mysql_new_root_pass.changed
+            #changed is gelinkt aan created (boolean)
+
+          - name: Remove test database
+            mysql_db: name=test state=absent
+            when: mysql_new_root_pass.changed
+
+          - name: Update root password
+            mysql_user: name=root host=localhost password={{mysql_new_root_pass.stdout}}
+            when: mysql_new_root_pass.changed
+
+          - name: Output new root password
+            debug: msg="Root password is {{mysql_new_root_pass.stdout}}"
+
+          - name: Copy config file
+            template: src=templates/mysql/my.cnf dest=/root/.my.cnf
+            when: mysql_new_root_pass.changed
+
+            #Nginx
+          - name: Install nginx
+            apt: name=nginx state=present
+          - name: Start nginx
+            service: name=nginx state=started
+          - name: Create config file
+            template: src=templates/nginx/default dest=/etc/nginx/sites-available/default
+            notify: Restarting Nginx
+
+            #WordPress
+            #Op voorhand downloaden zodat je geen verassingen hebt
+          - name: Copy wordpress.zip into tmp
+            copy: src=files/wordpress.zip dest=/tmp/wordpress.zip
+            #Of dynamisch de laatste versie downloaden
+         #- name: Download WordPress
+           #get_url: url=https://wordpress.org/latest.zip dest=/tmp/wordpress.zip
+           #checksum: "sha1:{{wp_checksum.content}}"
+           
+          - name: Unzip WordPress
+            #copy=no zorgt ervoor dat locaal gezocht wordt op de target machine naar wordpress.zip
+            unarchive: src=/tmp/wordpress.zip dest=/tmp copy=no creates=/tmp/wordpress/wp-settings.php
+
+            #Copy files voor nginx
+          - name: Create project folder
+            file: dest=/var/www/book.example.com state=directory
+          - name: Copy WordPress files
+            command: cp -a /tmp/wordpress/. /var/www/book.example.com creates=/var/www/book.example.com/wp-settings.php
+
+          - name: Create WordPress MySQL database
+            mysql_db: name=wordpress state=present
+          - name: Create WordPress MySQL user
+            mysql_user: name=wordpress host=localhost password=t priv=wordpress.*:ALL
+
+            #Na het doorgeven van info over het schema aan WP
+          - name: Create wp-config
+            template: src=templates/wordpress/wp-config.php dest=/var/www/book.example.com/wp-config.php
+
+            #eerst backup maken in /root/files/...
+          - name: Is the database empty?
+            command: mysql -u root wordpress -e "SELECT ID FROM wordpress.wp_users LIMIT 1;"
+            register: db_ok
+            #Dit onderbreekt niet de uitvoer van dit playbook bij falen
+            ignore_errors: true
+            #true => change has been made dus voer uit; false=> geen veranderingen, dus niet uitgevoerd
+            changed_when: false
+
+          - name: Copy WordPress DB
+            copy: src=/root/files/wp-database.sql dest=/tmp/wp-database.sql remote_src=yes
+            rc staat voor return code; bij goede uitvoer is de rc altijd 0
+            when: db_ok.rc > 0
+
+          - name: Import WordPress DB
+            mysql_db: target=/tmp/wp-database.sql state=import name=wordpress
+            when: db_ok.rc > 0
+
+  handlers:
+          - name: Restarting Nginx
+            service: name=nginx state=restarted
+
