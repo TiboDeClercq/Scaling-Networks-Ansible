@@ -138,6 +138,58 @@ Loopback21             unassigned      YES unset  up                    up
 
 ```
 
+#### Configuratie backuppen
+
+We willen van al onze devices de configuratie bijhouden. We schrijven de configuratie weg in de backup-folder. We maken gebruik van enkele variabelen.
+
+```yml
+- hosts: "*" 
+  vars:
+    backup_root: backup
+  
+  tasks:
+  - name: config
+    ios_facts:
+      gather_subset: config
+
+  - name: De output (configuratie) opslaan als een variabele
+    ios_command:
+      commands: show running  
+    register: config          
+
+  - name: Backup folder aanmaken
+    file:
+      path: "{{ backup_root }}"
+      state: directory
+
+  - name: Folder per device
+    file:
+      path: "{{ backup_root }}/{{ ansible_net_hostname }}"
+      state: directory
+
+  - name: Het tijdstip registreren
+    command: date +%Y-%m-%d_%H:%M:%S
+    register: timestamp
+
+  - name: Bestanden kopiëren
+    copy:
+      content: "{{ config.stdout[0] }}"
+      dest: "{{ backup_root }}/{{ ansible_net_hostname }}/running-config_{{ timestamp.stdout }}"
+
+```
+
+Resultaat:
+
+```bash
+backup
+├── csr1000v
+│   └── running-config_2020-05-24_22:15:25
+└── csr1000v-1
+    └── running-config_2020-05-24_22:15:25
+
+2 directories, 2 files
+```
+
 #### Pushen van config.txt naar routers
 
 Op onze routers willen we 8 nieuwe gebruikers, namelijk 8 hobbits.
