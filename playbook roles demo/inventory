@@ -1,0 +1,10 @@
+[raspi]
+192.168.0.128 ansible_ssh_user=pi
+
+[VMs]
+192.168.40.139 ansible_ssh_user=andrepull ansible_sudo_pass=t
+192.168.40.140 ansible_ssh_user=kroepoek ansible_sudo_pass=t
+
+[MC]
+34.77.235.96 ansible_ssh_user=andreas_geysegoms ansible_sudo_pass=t
+192.168.40.141 ansible_ssh_user=admino ansible_sudo_pass=dynadmin
